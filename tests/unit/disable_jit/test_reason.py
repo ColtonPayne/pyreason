@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import Mock, call
 import inspect
 
-from tests.unit.disable_jit.interpretation_helpers import (
+from tests.unit.disable_jit.test_interpretation_common import (
     get_interpretation_helpers,
 )
 
