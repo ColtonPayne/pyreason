@@ -173,63 +173,69 @@ def test_init_facts_no_trace(shim_types):
 
 # ---- _start_fp tests ----
 
-class DummyInterp:
-    def __init__(self):
-        self.time = 5
-        self.prev_reasoning_data = [2, 0]
-        self.interpretations_node = {}
-        self.interpretations_edge = {}
-        self.predicate_map_node = {}
-        self.predicate_map_edge = {}
-        self.tmax = 10
-        self.nodes = []
-        self.edges = []
-        self.neighbors = {}
-        self.reverse_neighbors = {}
-        self.rules_to_be_applied_node = []
-        self.rules_to_be_applied_edge = []
-        self.edges_to_be_added_node_rule = []
-        self.edges_to_be_added_edge_rule = []
-        self.rules_to_be_applied_node_trace = []
-        self.rules_to_be_applied_edge_trace = []
-        self.facts_to_be_applied_node = []
-        self.facts_to_be_applied_edge = []
-        self.facts_to_be_applied_node_trace = []
-        self.facts_to_be_applied_edge_trace = []
-        self.ipl = {}
-        self.rule_trace_node = {}
-        self.rule_trace_edge = {}
-        self.rule_trace_node_atoms = {}
-        self.rule_trace_edge_atoms = {}
-        self.reverse_graph = {}
-        self.atom_trace = False
-        self.save_graph_attributes_to_rule_trace = False
-        self.persistent = False
-        self.inconsistency_check = False
-        self.store_interpretation_changes = False
-        self.update_mode = 0
-        self.allow_ground_rules = False
-        self.annotation_functions = {}
-        self._convergence_mode = "perfect_convergence"
-        self._convergence_delta = 0
-        self.num_ga = [1]
 
-        def reason_stub(*args):
-            self.recorded_prev = list(args[5])
-            return (7, 3)
+def make_interp():
+    """Create a minimal Interpretation instance with a stubbed ``reason``."""
 
-        self.reason = reason_stub
+    interp_cls = interpretation.Interpretation
+    d = interp_cls.__new__(interp_cls)
+    d.time = 5
+    d.prev_reasoning_data = [2, 0]
+    d.interpretations_node = {}
+    d.interpretations_edge = {}
+    d.predicate_map_node = {}
+    d.predicate_map_edge = {}
+    d.tmax = 10
+    d.nodes = []
+    d.edges = []
+    d.neighbors = {}
+    d.reverse_neighbors = {}
+    d.rules_to_be_applied_node = []
+    d.rules_to_be_applied_edge = []
+    d.edges_to_be_added_node_rule = []
+    d.edges_to_be_added_edge_rule = []
+    d.rules_to_be_applied_node_trace = []
+    d.rules_to_be_applied_edge_trace = []
+    d.facts_to_be_applied_node = []
+    d.facts_to_be_applied_edge = []
+    d.facts_to_be_applied_node_trace = []
+    d.facts_to_be_applied_edge_trace = []
+    d.ipl = {}
+    d.rule_trace_node = {}
+    d.rule_trace_edge = {}
+    d.rule_trace_node_atoms = {}
+    d.rule_trace_edge_atoms = {}
+    d.reverse_graph = {}
+    d.atom_trace = False
+    d.save_graph_attributes_to_rule_trace = False
+    d.persistent = False
+    d.inconsistency_check = False
+    d.store_interpretation_changes = False
+    d.update_mode = 0
+    d.allow_ground_rules = False
+    d.annotation_functions = {}
+    d._convergence_mode = "perfect_convergence"
+    d._convergence_delta = 0
+    d.num_ga = [1]
+
+    def reason_stub(*args, **kwargs):
+        d.recorded_prev = list(args[5])
+        return (7, 3)
+
+    d.reason = reason_stub
+    return d
 
 
 def test_start_fp_no_again(shim_types):
-    d = DummyInterp()
-    start_fp(d, [], 0, False, False, False)
+    d = make_interp()
+    d._start_fp([], 0, False, False, False)
     assert d.time == 2 and d.prev_reasoning_data == [3, 7]
+    assert d.num_ga == [1]
 
 
 def test_start_fp_again_no_restart(shim_types):
-    d = DummyInterp()
-    start_fp(d, [], 0, False, True, False)
+    d = make_interp()
+    d._start_fp([], 0, False, True, False)
     assert d.recorded_prev[0] == 2
     if interpretation.__name__.endswith("interpretation"):
         assert d.num_ga == [1, 1]
@@ -238,16 +244,16 @@ def test_start_fp_again_no_restart(shim_types):
 
 
 def test_start_fp_restart_resets_verbose(shim_types, capsys):
-    d = DummyInterp()
-    start_fp(d, [], 0, True, True, True)
+    d = make_interp()
+    d._start_fp([], 0, True, True, True)
     captured = capsys.readouterr().out.strip()
     assert d.recorded_prev[0] == 0
     assert captured.endswith("7")
 
 
 def test_start_fp_no_again_verbose(shim_types, capsys):
-    d = DummyInterp()
-    start_fp(d, [], 0, True, False, False)
+    d = make_interp()
+    d._start_fp([], 0, True, False, False)
     captured = capsys.readouterr().out.strip()
     assert d.prev_reasoning_data == [3, 7]
     assert captured.endswith("7")
@@ -255,8 +261,8 @@ def test_start_fp_no_again_verbose(shim_types, capsys):
 
 
 def test_start_fp_again_no_restart_verbose(shim_types, capsys):
-    d = DummyInterp()
-    start_fp(d, [], 0, True, True, False)
+    d = make_interp()
+    d._start_fp([], 0, True, True, False)
     captured = capsys.readouterr().out.strip()
     assert d.recorded_prev[0] == 2
     assert captured.endswith("7")
@@ -267,8 +273,8 @@ def test_start_fp_again_no_restart_verbose(shim_types, capsys):
 
 
 def test_start_fp_restart_no_verbose(shim_types, capsys):
-    d = DummyInterp()
-    start_fp(d, [], 0, False, True, True)
+    d = make_interp()
+    d._start_fp([], 0, False, True, True)
     captured = capsys.readouterr().out.strip()
     assert d.recorded_prev[0] == 0
     assert captured == ""
