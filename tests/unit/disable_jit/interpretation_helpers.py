@@ -110,6 +110,33 @@ def get_interpretation_helpers(module_name: str = "interpretation_fp"):
     ns.str_to_int = _py(interpretation.str_to_int)
     ns.annotate = _py(interpretation.annotate)
 
+    # Initialization helpers
+    ns.init_reverse_neighbors = _py(
+        interpretation.Interpretation._init_reverse_neighbors
+    )
+
+    _init_nodes_fn = _py(
+        interpretation.Interpretation._init_interpretations_node
+    )
+    if "num_ga" in inspect.signature(_init_nodes_fn).parameters:
+        def init_interpretations_node(nodes, specific_labels):
+            return _init_nodes_fn(nodes, specific_labels, [0])
+    else:
+        def init_interpretations_node(nodes, specific_labels):
+            return _init_nodes_fn(nodes, specific_labels)
+    ns.init_interpretations_node = init_interpretations_node
+
+    _init_edges_fn = _py(
+        interpretation.Interpretation._init_interpretations_edge
+    )
+    if "num_ga" in inspect.signature(_init_edges_fn).parameters:
+        def init_interpretations_edge(edges, specific_labels):
+            return _init_edges_fn(edges, specific_labels, [0])
+    else:
+        def init_interpretations_edge(edges, specific_labels):
+            return _init_edges_fn(edges, specific_labels)
+    ns.init_interpretations_edge = init_interpretations_edge
+
     _reason_fn = _py(interpretation.Interpretation.reason)
     if "num_ga" in inspect.signature(_reason_fn).parameters:
         def reason(
