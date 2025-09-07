@@ -233,8 +233,8 @@ class Interpretation:
 		facts_to_be_applied_edge_new = numba.typed.List.empty_list(facts_to_be_applied_edge_type)
 		facts_to_be_applied_node_trace_new = numba.typed.List.empty_list(numba.types.string)
 		facts_to_be_applied_edge_trace_new = numba.typed.List.empty_list(numba.types.string)
-		rules_to_remove_idx = set()
-		rules_to_remove_idx.add(-1)
+		rules_to_remove_idx = numba.typed.List.empty_list(numba.types.int64)
+		rules_to_remove_idx.append(-1)
 		while timestep_loop:
 			if t==tmax:
 				timestep_loop = False
@@ -450,7 +450,7 @@ class Interpretation:
 									changes_cnt += changes
 
 						# Delete rules that have been applied from list by adding index to list
-						rules_to_remove_idx.add(idx)
+						rules_to_remove_idx.append(idx)
 
 				# Remove from rules to be applied and edges to be applied lists after coming out from loop
 				rules_to_be_applied_node[:] = numba.typed.List([rules_to_be_applied_node[i] for i in range(len(rules_to_be_applied_node)) if i not in rules_to_remove_idx])
@@ -525,7 +525,7 @@ class Interpretation:
 										changes_cnt += changes
 
 						# Delete rules that have been applied from list by adding the index to list
-						rules_to_remove_idx.add(idx)
+						rules_to_remove_idx.append(idx)
 
 				# Remove from rules to be applied and edges to be applied lists after coming out from loop
 				rules_to_be_applied_edge[:] = numba.typed.List([rules_to_be_applied_edge[i] for i in range(len(rules_to_be_applied_edge)) if i not in rules_to_remove_idx])
