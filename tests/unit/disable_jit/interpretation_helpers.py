@@ -7,6 +7,7 @@ now provides :func:`get_interpretation_helpers` which can return helpers for eit
 
 from types import SimpleNamespace
 import importlib
+import inspect
 import pyreason.scripts.numba_wrapper.numba_types.label_type as label
 
 
@@ -57,8 +58,25 @@ def get_interpretation_helpers(module_name: str = "interpretation_fp"):
         interpretation.check_all_clause_satisfaction
     )
     ns.add_node = _py(interpretation._add_node)
-    ns.add_edge = _py(interpretation._add_edge)
-    ns.ground_rule = _py(interpretation._ground_rule)
+
+    _add_edge_fn = _py(interpretation._add_edge)
+    if "num_ga" in inspect.signature(_add_edge_fn).parameters:
+        def add_edge(*args):
+            *pre, t = args
+            return _add_edge_fn(*pre, [0], t)
+    else:
+        def add_edge(*args):
+            return _add_edge_fn(*args)
+    ns.add_edge = add_edge
+
+    _ground_rule_fn = _py(interpretation._ground_rule)
+    if "num_ga" in inspect.signature(_ground_rule_fn).parameters:
+        def ground_rule(*args, **kwargs):
+            return _ground_rule_fn(*args, num_ga=[0], **kwargs)
+    else:
+        def ground_rule(*args, **kwargs):
+            return _ground_rule_fn(*args, **kwargs)
+    ns.ground_rule = ground_rule
     ns.update_rule_trace = _py(interpretation._update_rule_trace)
     ns.are_satisfied_node = _py(interpretation.are_satisfied_node)
     ns.are_satisfied_edge = _py(interpretation.are_satisfied_edge)
