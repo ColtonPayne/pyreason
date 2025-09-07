@@ -243,3 +243,36 @@ def test_start_fp_restart_resets_verbose(shim_types, capsys):
     captured = capsys.readouterr().out.strip()
     assert d.recorded_prev[0] == 0
     assert captured.endswith("7")
+
+
+def test_start_fp_no_again_verbose(shim_types, capsys):
+    d = DummyInterp()
+    start_fp(d, [], 0, True, False, False)
+    captured = capsys.readouterr().out.strip()
+    assert d.prev_reasoning_data == [3, 7]
+    assert captured.endswith("7")
+    assert d.num_ga == [1]
+
+
+def test_start_fp_again_no_restart_verbose(shim_types, capsys):
+    d = DummyInterp()
+    start_fp(d, [], 0, True, True, False)
+    captured = capsys.readouterr().out.strip()
+    assert d.recorded_prev[0] == 2
+    assert captured.endswith("7")
+    if interpretation.__name__.endswith("interpretation"):
+        assert d.num_ga == [1, 1]
+    else:
+        assert d.num_ga == [1]
+
+
+def test_start_fp_restart_no_verbose(shim_types, capsys):
+    d = DummyInterp()
+    start_fp(d, [], 0, False, True, True)
+    captured = capsys.readouterr().out.strip()
+    assert d.recorded_prev[0] == 0
+    assert captured == ""
+    if interpretation.__name__.endswith("interpretation"):
+        assert d.num_ga == [1, 1]
+    else:
+        assert d.num_ga == [1]
