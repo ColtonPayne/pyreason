@@ -137,6 +137,17 @@ def get_interpretation_helpers(module_name: str = "interpretation_fp"):
             return _init_edges_fn(edges, specific_labels)
     ns.init_interpretations_edge = init_interpretations_edge
 
+    # Additional initialization helpers
+    ns.init_convergence = _py(
+        interpretation.Interpretation._init_convergence
+    )
+    ns.init_facts = _py(
+        interpretation.Interpretation._init_facts
+    )
+    ns.start_fp = _py(
+        interpretation.Interpretation._start_fp
+    )
+
     _reason_fn = _py(interpretation.Interpretation.reason)
     if "num_ga" in inspect.signature(_reason_fn).parameters:
         def reason(
