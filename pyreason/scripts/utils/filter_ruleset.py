@@ -8,27 +8,25 @@ def filter_ruleset(queries, rules):
     """
 
     # Helper function to collect all rules that can support making a given rule true
-    def applicable_rules_from_query(query):
-        # Start with rules that match the query directly
-        applicable = []
+    def applicable_rules_from_query(query, visited):
+        # Avoid revisiting the same predicate to prevent infinite recursion
+        if query in visited:
+            return []
+        visited.add(query)
 
+        applicable = []
         for rule in rules:
-            # If the rule's target matches the query
             if query == rule.get_target():
-                # Add the rule to the applicable set
                 applicable.append(rule)
-                # Recursively check rules that can lead up to this rule
                 for clause in rule.get_clauses():
-                    # Find supporting rules with the clause as the target
-                    supporting_rules = applicable_rules_from_query(clause[1])
-                    applicable.extend(supporting_rules)
+                    applicable.extend(applicable_rules_from_query(clause[1], visited))
 
         return applicable
 
     # Collect applicable rules for each query and eliminate duplicates
     filtered_rules = []
     for q in queries:
-        filtered_rules.extend(applicable_rules_from_query(q.get_predicate()))
+        filtered_rules.extend(applicable_rules_from_query(q.get_predicate(), set()))
 
     # Use set to avoid duplicates if a rule supports multiple queries
     return list(set(filtered_rules))
