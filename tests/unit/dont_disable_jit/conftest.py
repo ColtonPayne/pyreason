@@ -1,32 +1,21 @@
+import os
 import sys
-import types
 
-# Provide lightweight stubs for pyreason.pyreason to avoid expensive init.
-sys.modules.setdefault('pyreason.pyreason', types.ModuleType('pyreason.pyreason'))
-stub = sys.modules['pyreason.pyreason']
+# Ensure JIT is enabled for this test directory
+if "NUMBA_DISABLE_JIT" in os.environ:
+    del os.environ["NUMBA_DISABLE_JIT"]
 
-stub.settings = types.SimpleNamespace()
+# Clear any cached numba modules to reset JIT configuration
+numba_modules = [name for name in sys.modules.keys() if name.startswith('numba')]
+for module_name in numba_modules:
+    if module_name in sys.modules:
+        del sys.modules[module_name]
 
-def _noop(*args, **kwargs):
-    return None
+# Clear any cached pyreason modules that might have numba dependencies
+pyreason_modules = [name for name in sys.modules.keys() if name.startswith('pyreason')]
+for module_name in pyreason_modules:
+    if module_name in sys.modules:
+        del sys.modules[module_name]
 
-stub.load_graphml = _noop
-stub.add_rule = _noop
-stub.add_fact = _noop
-stub.reason = _noop
-stub.reset = _noop
-stub.reset_rules = _noop
-
-
-class Rule:
-    def __init__(self, *args, **kwargs):
-        pass
-
-
-class Fact:
-    def __init__(self, *args, **kwargs):
-        pass
-
-
-stub.Rule = Rule
-stub.Fact = Fact
+import numba
+numba.config.DISABLE_JIT = False

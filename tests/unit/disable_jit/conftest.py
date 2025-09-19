@@ -1,35 +1,37 @@
-# # tests/conftest.py
 import os
+import sys
+
+# Ensure JIT is disabled BEFORE any numba imports
 os.environ["NUMBA_DISABLE_JIT"] = "1"
+
+# Clear any cached numba modules to reset JIT configuration
+numba_modules = [name for name in sys.modules.keys() if name.startswith('numba')]
+for module_name in numba_modules:
+    if module_name in sys.modules:
+        del sys.modules[module_name]
+
+# Clear any cached pyreason modules that might have numba dependencies
+pyreason_modules = [name for name in sys.modules.keys() if name.startswith('pyreason')]
+for module_name in pyreason_modules:
+    if module_name in sys.modules:
+        del sys.modules[module_name]
+
 import numba
 numba.config.DISABLE_JIT = True
-import sys, types
-sys.modules.setdefault("pyreason.pyreason", types.ModuleType("pyreason.pyreason"))
-stub = sys.modules["pyreason.pyreason"]
-stub.settings = types.SimpleNamespace()
-stub.load_graphml = lambda *a, **k: None
-stub.add_rule = lambda *a, **k: None
-stub.add_fact = lambda *a, **k: None
-stub.reason = lambda *a, **k: None
-stub.reset = lambda *a, **k: None
-stub.reset_rules = lambda *a, **k: None
-class Rule:
-    def __init__(self, *args, **kwargs):
-        pass
-class Fact:
-    def __init__(self, *args, **kwargs):
-        pass
-stub.Rule = Rule
-stub.Fact = Fact
 
+# Temporarily remove problematic import that causes module-level compilation conflicts
 
 import pytest
-from tests.unit.disable_jit.interpretations.test_interpretation_common import get_interpretation_helpers
+
+# Defer import until fixture is actually used to ensure JIT is fully disabled
+def get_interpretation_helpers_deferred(param):
+    from tests.unit.disable_jit.interpretations.test_interpretation_common import get_interpretation_helpers
+    return get_interpretation_helpers(param)
 
 
 @pytest.fixture(params=["interpretation_fp", "interpretation"])
 def helpers_fixture(request):
-    h = get_interpretation_helpers(request.param)
+    h = get_interpretation_helpers_deferred(request.param)
     m = request.module
     for name in dir(h):
         if not name.startswith("_"):
@@ -38,7 +40,7 @@ def helpers_fixture(request):
 
 
 @pytest.fixture
-def reason_env(monkeypatch, helpers_fixture):
+def reason_env(request, monkeypatch, helpers_fixture):
     """Minimal environment to exercise Interpretation.reason."""
 
     interp = helpers_fixture.interpretation
