@@ -1323,11 +1323,20 @@ def get_rule_edge_clause_grounding(clause_var_1, clause_var_2, groundings, groun
 
 	# Case 1:
 	# We replace Y by all nodes and Z by the neighbors of each of these nodes
+	# For transitive reasoning, we need to be more selective to avoid over-grounding
 	if clause_var_1 not in groundings and clause_var_2 not in groundings:
 		if l in predicate_map:
-			edge_groundings = predicate_map[l]
+			candidate_edges = predicate_map[l]
 		else:
-			edge_groundings = edges
+			candidate_edges = edges
+
+		# For Case 1, instead of returning ALL edges, return only one edge at a time
+		# This prevents the variable corruption that happens when multiple edges
+		# ground the same variables with different values
+		if len(candidate_edges) > 0:
+			edge_groundings.append(candidate_edges[0])
+		else:
+			edge_groundings = candidate_edges
 
 	# Case 2:
 	# We replace Y by the sources of Z

@@ -37,7 +37,7 @@ def test_both_versions_transitive():
     graph.add_edge("B", "C")
     pr.load_graph(graph)
 
-    pr.add_rule(pr.Rule(rule_str, 'transitive_rule'))
+    pr.add_rule(pr.Rule(rule_str, 'transitive_rule', infer_edges=True))
     pr.add_fact(pr.Fact('connected(A, B)', 'fact1'))
     pr.add_fact(pr.Fact('connected(B, C)', 'fact2'))
 
@@ -68,7 +68,7 @@ def test_both_versions_transitive():
     graph.add_edge("B", "C")
     pr.load_graph(graph)
 
-    pr.add_rule(pr.Rule(rule_str, 'transitive_rule'))
+    pr.add_rule(pr.Rule(rule_str, 'transitive_rule', infer_edges=True))
     pr.add_fact(pr.Fact('connected(A, B)', 'fact1'))
     pr.add_fact(pr.Fact('connected(B, C)', 'fact2'))
 

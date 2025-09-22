@@ -519,8 +519,8 @@ class Interpretation:
 					if t + delta_t <= tmax or tmax == -1 or again:
 						applicable_node_rules, applicable_edge_rules = _ground_rule(rule, interpretations_node[t], interpretations_edge[t], predicate_map_node, predicate_map_edge, nodes, edges, neighbors, reverse_neighbors, atom_trace, allow_ground_rules, t)
 
-						print("num applicable rules at time ", t, len(applicable_node_rules))
-						print("num applicable EDGE rules at time ", t, len(applicable_edge_rules))
+						# print("num applicable rules at time ", t, len(applicable_node_rules))
+						# print("num applicable EDGE rules at time ", t, len(applicable_edge_rules))
 
 						# Loop through applicable rules and add them to the rules to be applied for later or next fp operation
 						for applicable_rule in applicable_node_rules:
@@ -889,6 +889,8 @@ class Interpretation:
 			if pred not in self.interpretations_node[t][component].world:
 				return False if return_bool else (0, 0)
 		else:
+			if component not in self.interpretations_edge[t]:
+				return False if return_bool else (0, 0)
 			if pred not in self.interpretations_edge[t][component].world:
 				return False if return_bool else (0, 0)
 
@@ -989,17 +991,17 @@ def _ground_rule(rule, interpretations_node, interpretations_edge, predicate_map
 			if allow_ground_rules and (clause_var_1, clause_var_2) in edges_set:
 				grounding = numba.typed.List([(clause_var_1, clause_var_2)])
 			else:
-				print(f"DEBUG: Before get_rule_edge_clause_grounding for ({clause_var_1}, {clause_var_2}):")
-				print(f"  groundings keys: {list(groundings.keys())}")
-				for key in groundings.keys():
-					print(f"  groundings['{key}']: {list(groundings[key])}")
+				#print(f"DEBUG: Before get_rule_edge_clause_grounding for ({clause_var_1}, {clause_var_2}):")
+				#print(f"  groundings keys: {list(groundings.keys())}")
+				#for key in groundings.keys():
+					#print(f"  groundings['{key}']: {list(groundings[key])}")
 				grounding = get_rule_edge_clause_grounding(clause_var_1, clause_var_2, groundings, groundings_edges, neighbors, reverse_neighbors, predicate_map_edge, clause_label, edges)
-				print(f"DEBUG: get_rule_edge_clause_grounding returned: {grounding}")
+				#print(f"DEBUG: get_rule_edge_clause_grounding returned: {grounding}")
 
 			# Narrow subset based on predicate (save the edges that are qualified to use for finding future groundings faster)
-			print(f"DEBUG: Clause ({clause_var_1}, {clause_var_2}) - grounding input: {grounding}")
+			#print(f"DEBUG: Clause ({clause_var_1}, {clause_var_2}) - grounding input: {grounding}")
 			qualified_groundings = get_qualified_edge_groundings(interpretations_edge, grounding, clause_label, clause_bnd)
-			print(f"DEBUG: Clause ({clause_var_1}, {clause_var_2}) - qualified_groundings output: {qualified_groundings}")
+			#print(f"DEBUG: Clause ({clause_var_1}, {clause_var_2}) - qualified_groundings output: {qualified_groundings}")
 
 			# Check satisfaction of those edges wrt the threshold
 			# Only check satisfaction if the default threshold is used. This saves us from grounding the rest of the rule
@@ -1008,23 +1010,23 @@ def _ground_rule(rule, interpretations_node, interpretations_edge, predicate_map
 			satisfaction = check_edge_grounding_threshold_satisfaction(interpretations_edge, grounding, qualified_groundings, clause_label, thresholds[i]) and satisfaction
 
 			# Update the groundings
-			print(f"DEBUG: Before grounding update - qualified_groundings: {qualified_groundings}")
+			#print(f"DEBUG: Before grounding update - qualified_groundings: {qualified_groundings}")
 			groundings[clause_var_1] = numba.typed.List.empty_list(node_type)
 			groundings[clause_var_2] = numba.typed.List.empty_list(node_type)
 			groundings_clause_1_set = set(groundings[clause_var_1])
 			groundings_clause_2_set = set(groundings[clause_var_2])
 			for e in qualified_groundings:
-				print(f"DEBUG: Processing edge grounding {e}")
+				#print(f"DEBUG: Processing edge grounding {e}")
 				if e[0] not in groundings_clause_1_set:
 					groundings[clause_var_1].append(e[0])
 					groundings_clause_1_set.add(e[0])
-					print(f"DEBUG: Added {e[0]} to groundings['{clause_var_1}']")
+					#print(f"DEBUG: Added {e[0]} to groundings['{clause_var_1}']")
 				if e[1] not in groundings_clause_2_set:
 					groundings[clause_var_2].append(e[1])
 					groundings_clause_2_set.add(e[1])
-					print(f"DEBUG: Added {e[1]} to groundings['{clause_var_2}']")
-			print(f"DEBUG: After update - groundings['{clause_var_1}']: {list(groundings[clause_var_1])}")
-			print(f"DEBUG: After update - groundings['{clause_var_2}']: {list(groundings[clause_var_2])}")
+					#print(f"DEBUG: Added {e[1]} to groundings['{clause_var_2}']")
+			#print(f"DEBUG: After update - groundings['{clause_var_1}']: {list(groundings[clause_var_1])}")
+			#print(f"DEBUG: After update - groundings['{clause_var_2}']: {list(groundings[clause_var_2])}")
 
 			# Update the edge groundings (to use later for grounding other clauses with the same variables)
 			groundings_edges[(clause_var_1, clause_var_2)] = qualified_groundings
@@ -1184,9 +1186,9 @@ def _ground_rule(rule, interpretations_node, interpretations_edge, predicate_map
 			if not head_var_1_in_nodes and not head_var_2_in_nodes:
 				add_head_edge_to_graph = True
 
-			print(f"DEBUG: groundings dictionary keys: {list(groundings.keys())}")
-			for key in groundings.keys():
-				print(f"DEBUG: groundings['{key}']: {list(groundings[key])}")
+			#print(f"DEBUG: groundings dictionary keys: {list(groundings.keys())}")
+			#for key in groundings.keys():
+				#print(f"DEBUG: groundings['{key}']: {list(groundings[key])}")
 
 			head_var_1_groundings = groundings[head_var_1]
 			head_var_2_groundings = groundings[head_var_2]
@@ -1198,9 +1200,9 @@ def _ground_rule(rule, interpretations_node, interpretations_edge, predicate_map
 			# For infer edges we loop over each combination pair
 			# Else we loop over the valid edges in the graph
 			valid_edge_groundings = numba.typed.List.empty_list(edge_type)
-			print(f"DEBUG: head_var_1 '{head_var_1}' groundings: {list(head_var_1_groundings)}")
-			print(f"DEBUG: head_var_2 '{head_var_2}' groundings: {list(head_var_2_groundings)}")
-			print(f"DEBUG: infer_edges: {infer_edges}")
+			# print(f"DEBUG: head_var_1 '{head_var_1}' groundings: {list(head_var_1_groundings)}")
+			# print(f"DEBUG: head_var_2 '{head_var_2}' groundings: {list(head_var_2_groundings)}")
+			# print(f"DEBUG: infer_edges: {infer_edges}")
 			for g1 in head_var_1_groundings:
 				for g2 in head_var_2_groundings:
 					if infer_edges:
@@ -1209,7 +1211,7 @@ def _ground_rule(rule, interpretations_node, interpretations_edge, predicate_map
 						if (g1, g2) in edges_set:
 							valid_edge_groundings.append((g1, g2))
 
-			print(f"DEBUG: valid_edge_groundings: {list(valid_edge_groundings)}")
+			# print(f"DEBUG: valid_edge_groundings: {list(valid_edge_groundings)}")
 
 			# Loop through the head variable groundings
 			for valid_e in valid_edge_groundings:
@@ -1247,10 +1249,10 @@ def _ground_rule(rule, interpretations_node, interpretations_edge, predicate_map
 				# Check if the thresholds are still satisfied
 				# Check if all clauses are satisfied again in case the refining process changed anything
 				satisfaction = check_all_clause_satisfaction(interpretations_node, interpretations_edge, clauses, thresholds, temp_groundings, temp_groundings_edges)
-				print(f"DEBUG: Edge grounding ({head_var_1_grounding}, {head_var_2_grounding}) satisfaction: {satisfaction}")
+				# print(f"DEBUG: Edge grounding ({head_var_1_grounding}, {head_var_2_grounding}) satisfaction: {satisfaction}")
 
 				if not satisfaction:
-					print(f"DEBUG: Skipping edge grounding due to failed satisfaction check")
+					# print(f"DEBUG: Skipping edge grounding due to failed satisfaction check")
 					continue
 
 				if infer_edges:
@@ -1362,9 +1364,9 @@ def _ground_rule(rule, interpretations_node, interpretations_edge, predicate_map
 				# Only if all the clauses have valid groundings
 				# if satisfaction:
 				e = (head_var_1_grounding, head_var_2_grounding)
-				print(f"DEBUG: About to append edge rule for {e}")
+				# print(f"DEBUG: About to append edge rule for {e}")
 				applicable_rules_edge.append((e, annotations, qualified_nodes, qualified_edges, edges_to_be_added))
-				print(f"DEBUG: Successfully appended edge rule for {e}")
+				# print(f"DEBUG: Successfully appended edge rule for {e}")
 
 	# Return the applicable rules
 	return applicable_rules_node, applicable_rules_edge
@@ -1498,11 +1500,20 @@ def get_rule_edge_clause_grounding(clause_var_1, clause_var_2, groundings, groun
 
 	# Case 1:
 	# We replace Y by all nodes and Z by the neighbors of each of these nodes
+	# For transitive reasoning, we need to be more selective to avoid over-grounding
 	if clause_var_1 not in groundings and clause_var_2 not in groundings:
 		if l in predicate_map:
-			edge_groundings = predicate_map[l]
+			candidate_edges = predicate_map[l]
 		else:
-			edge_groundings = edges
+			candidate_edges = edges
+
+		# For Case 1, instead of returning ALL edges, return only one edge at a time
+		# This prevents the variable corruption that happens when multiple edges
+		# ground the same variables with different values
+		if len(candidate_edges) > 0:
+			edge_groundings.append(candidate_edges[0])
+		else:
+			edge_groundings = candidate_edges
 
 	# Case 2:
 	# We replace Y by the sources of Z

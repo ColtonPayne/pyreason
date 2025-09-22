@@ -401,7 +401,7 @@ class TestFixedPointVersions:
         pr.settings.fp_version = True  # Enable FP version for all tests in this class
 
     @pytest.mark.fp
-    @pytest.mark.skip(reason="Pure edge-to-edge transitive reasoning not supported in PyReason architecture. Both regular and FP versions fail this test. PyReason requires node clause anchors for multi-clause rule grounding.")
+    #@pytest.mark.skip(reason="Pure edge-to-edge transitive reasoning not supported in PyReason architecture. Both regular and FP versions fail this test. PyReason requires node clause anchors for multi-clause rule grounding.")
     def test_basic_reasoning_fp(self):
         """Test basic reasoning functionality with FP version"""
         # Create simple graph
@@ -410,16 +410,16 @@ class TestFixedPointVersions:
         graph.add_edge("B", "C")
         pr.load_graph(graph)
 
-        # Add rule and fact
-        pr.add_rule(pr.Rule('connected(x, z) <-1 connected(x, y), connected(y, z)', 'transitive_rule'))
+        # Add rule and factB
+        pr.add_rule(pr.Rule('connected(x, z) <-1 connected(x, y), connected(y, z)', 'transitive_rule', infer_edges=True))
         pr.add_fact(pr.Fact('connected(A, B)', 'fact1'))
         pr.add_fact(pr.Fact('connected(B, C)', 'fact2'))
 
         # Reason
         interpretation = pr.reason(timesteps=2)
 
-        # Verify transitivity worked
-        assert interpretation.query(pr.Query('connected(A, C)')), 'Should infer connected(A, C) via transitivity'
+        # Verify transitivity worked - inferred edge should be available at t=1
+        assert interpretation.query(pr.Query('connected(A, C)'), t=1), 'Should infer connected(A, C) via transitivity'
 
     @pytest.mark.fp
     def test_settings_validation_fp(self):
