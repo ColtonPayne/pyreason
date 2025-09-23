@@ -32,6 +32,7 @@ def test_fact_persistence_regular():
     pr.add_fact(pr.Fact('connected(B, C)', 'fact2'))
 
     interpretation = pr.reason(timesteps=2)
+    print("Dict: ", interpretation.get_dict())
 
     print("\nQuerying with return_bool=False to see bounds:")
     print(f"  connected(A, B) bounds: {interpretation.query(pr.Query('connected(A, B)'), return_bool=False)}")
@@ -196,12 +197,12 @@ def compare_case_1_behavior():
     pr.add_fact(pr.Fact('connected(B, C)', 'fact2'))
     pr.add_fact(pr.Fact('connected(X, Y)', 'fact3'))  # This should trigger over-grounding if bug exists
 
-    print("Running regular version...")
-    interpretation_reg = pr.reason(timesteps=2)
+    print("Running FP version...")
+    interpretation_fp = pr.reason(timesteps=2)
 
-    print(f"\nRegular results:")
-    print(f"  connected(A, C): {interpretation_reg.query(pr.Query('connected(A, C)'))}")
-    print(f"  connected(X, Y): {interpretation_reg.query(pr.Query('connected(X, Y)'))}")
+    print(f"\FP results:")
+    print(f"  connected(A, C): {interpretation_fp.query(pr.Query('connected(A, C)'))}")
+    print(f"  connected(X, Y): {interpretation_fp.query(pr.Query('connected(X, Y)'))}")
 
 if __name__ == "__main__":
     print("DEEP COMPARISON: REGULAR vs FP INTERPRETATION ENGINES")
